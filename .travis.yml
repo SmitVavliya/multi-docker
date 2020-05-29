@@ -1,0 +1,23 @@
+language: generic
+sudo: required
+services: 
+  - docker
+
+before_install:
+  - docker build -t smitvavliya/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true smitvavliya/react-test npm test
+
+after_success:
+  - docker build -t smitvavliya/multi-client ./client
+  - docker build -t smitvavliya/multi-nginx  ./nginx
+  - docker build -t smitvavliya/multi-server ./server
+  - docker build -t smitvavliya/multi-worker ./worker
+  # Login to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # push images to docker hub 
+  - docker push smitvavliya/multi-client
+  - docker push smitvavliya/multi-nginx
+  - docker push smitvavliya/multi-server
+  - docker push smitvavliya/multi-worker
